@@ -1,12 +1,16 @@
 ''' Here we will write code for feature engineering the raw dataset'''
 
 #  import modules here
+# import sys
+# sys.path.append('/home/deb/untitled/DSDJ/DSDJ workshops/Linear_Regression/My_Code/House_price_prediction/src')
+
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import abc
 import pickle
 
 import config
+import create_folds
 
 # create abc class here
 class MustHaveForFeatureEngg:
@@ -51,17 +55,24 @@ class FeatureEngg(MustHaveForFeatureEngg):
         # dropping the features we do not need
         data = self.drop_features(data, config.FEATURES_TO_DROP)
         print(data.shape)
-        X_features = data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False)
-        y_target = data[config.OUTPUT_FEATURE]
+        # X_features = data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False)
+        # y_target = data[config.OUTPUT_FEATURE]
 
         scaler = MinMaxScaler()
 
         if dataset_type == 'TRAIN':
-            X_features = scaler.fit_transform(X_features)
+            # scaling data here
+            scaler.fit_transform(data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False))
+            print(data.max())
+            # applying kfold cv labels here
+            data[config.KFOLD_COLUMN_NAME] = -1
+            kfold_obj = create_folds.CreateFolds()
+            data = kfold_obj.get_kfolds(data)
+            print(data.columns)
         elif dataset_type == 'TEST':
-            X_features = scaler.fit_transform(X_features)
+            scaler.fit_transform(data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False))
 
-        return X_features, y_target
+        return data
 
 
     def drop_features(self, data_df, features_to_drop):
