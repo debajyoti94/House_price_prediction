@@ -6,6 +6,8 @@ from sklearn.preprocessing import MinMaxScaler
 import abc
 import pickle
 
+import config
+
 # create abc class here
 class MustHaveForFeatureEngg:
 
@@ -39,6 +41,7 @@ class FeatureEngg(MustHaveForFeatureEngg):
         this will be used for minmax scaling
         :return: cleaned dataset
         '''
+        print(data.shape)
 
         # extracting year and month from date feature
         data['date'] = pd.to_datetime(data['date'])
@@ -47,7 +50,7 @@ class FeatureEngg(MustHaveForFeatureEngg):
 
         # dropping the features we do not need
         data = self.drop_features(data, config.FEATURES_TO_DROP)
-
+        print(data.shape)
         X_features = data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False)
         y_target = data[config.OUTPUT_FEATURE]
 
@@ -56,7 +59,7 @@ class FeatureEngg(MustHaveForFeatureEngg):
         if dataset_type == 'TRAIN':
             X_features = scaler.fit_transform(X_features)
         elif dataset_type == 'TEST':
-            X_features = scaler.transform(X_features)
+            X_features = scaler.fit_transform(X_features)
 
         return X_features, y_target
 
@@ -69,10 +72,10 @@ class FeatureEngg(MustHaveForFeatureEngg):
         :param features_to_drop: list of features that you want to drop
         :return: dataframe with dropped features
         '''
-        return data_df.drop(features_to_drop,
-                            axis=1, inplace=True)
+        data_df = data_df.drop(features_to_drop,
+                            axis=1, inplace=False)
 
-
+        return data_df
 
 # class for dumping and loading pickled files
 class DumpLoadFile:
