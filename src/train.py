@@ -61,17 +61,28 @@ if __name__ == "__main__":
 
         # get clean datasets
         fr_obj = feature_engg.FeatureEngg()
-        X_train, y_train = fr_obj.cleaning_data(raw_train, dataset_type='TRAIN')
-        X_test, y_test = fr_obj.cleaning_data(raw_test, dataset_type='TEST')
+        train_dataset = fr_obj.cleaning_data(raw_train, dataset_type='TRAIN')
+        test_dataset = fr_obj.cleaning_data(raw_test, dataset_type='TEST')
 
         # print(X_train.shape,y_train.shape)
         # print(X_test.shape, y_test.shape)
 
         # dump these objects
-        dl_obj.dump_file(config.CLEAN_TRAIN_DATASET, X_train, y_train)
-        dl_obj.dump_file(config.CLEAN_TEST_DATASET, X_test, y_test)
+        dl_obj.dump_file(config.CLEAN_TRAIN_DATASET, train_dataset)
+        dl_obj.dump_file(config.CLEAN_TEST_DATASET, test_dataset)
 
     elif args.train == 'kfold':
+
+        #  load the train set
+        X_train, y_train = dl_obj.load_file(config.CLEAN_TRAIN_DATASET)
+
+        # setting the kfold column name to 1
+        # so that we can use it for CV
+        X_train[config.KFOLD_COLUMN_NAME] = -1
+
+        # creating KFOLD obj
+        kfold_obj = create_folds.KFoldDF()
+        X_train
         pass
 
     elif args.test == 'inference':
