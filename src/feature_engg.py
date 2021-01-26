@@ -33,12 +33,32 @@ class FeatureEngg(MustHaveForFeatureEngg):
 
     def cleaning_data(self, data, dataset_type):
         '''
-
-        :param data:
-        :param dataset_type:
-        :return:
+        Pre-processing the raw data and providing a clean version.
+        :param data: input dataset
+        :param dataset_type: TRAIN or TEST flag,
+        this will be used for minmax scaling
+        :return: cleaned dataset
         '''
-        return
+
+        # extracting year and month from date feature
+        data['date'] = pd.to_datetime(data['date'])
+        data['year'] = data['date'].apply(lambda date: date.year)
+        data['month'] = data['date'].apply(lambda date: date.month)
+
+        # dropping the features we do not need
+        data = self.drop_features(data, config.FEATURES_TO_DROP)
+
+        X_features = data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False)
+        y_target = data[config.OUTPUT_FEATURE]
+
+        scaler = MinMaxScaler()
+
+        if dataset_type == 'TRAIN':
+            X_features = scaler.fit_transform(X_features)
+        elif dataset_type == 'TEST':
+            X_features = scaler.transform(X_features)
+
+        return X_features, y_target
 
 
     def drop_features(self, data_df, features_to_drop):
@@ -49,6 +69,10 @@ class FeatureEngg(MustHaveForFeatureEngg):
         :param features_to_drop: list of features that you want to drop
         :return: dataframe with dropped features
         '''
+        return data_df.drop(features_to_drop,
+                            axis=1, inplace=True)
+
+
 
 # class for dumping and loading pickled files
 class DumpLoadFile:
@@ -73,11 +97,5 @@ class DumpLoadFile:
             pickle.dump(file, pickle_handle)
 
 
-# create pickle dump load class here
 
-# writing some snippets here
-df['date'] = pd.to_datetime(df['date'])
-
-df['year'] = df['date'].apply(lambda date: date.year)
-df['month'] = df['date'].apply(lambda date: date.month)
 
