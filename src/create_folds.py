@@ -28,3 +28,5 @@ class CreateFolds:
 
             dataset.loc[index, config.KFOLD_COLUMN_NAME] = fold_value
 
+
+        return dataset
