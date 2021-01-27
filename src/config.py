@@ -14,10 +14,16 @@ CLEAN_TEST_DATASET = '../input/clean_test_set.pickle'
 FILE_DELIMITER = ','
 ENCODING_TYPE = 'UTF-8'
 RAW_DATASET_SHAPE = (21267, 19)
+OUTPUT_FEATURE = 'price'
+FEATURES_TO_DROP = ['id', 'zipcode', 'date']
 
 #  for the model
+NUM_FEATURES = 19
+BATCH_SIZE = 64
 NUM_FOLDS = 5
+KFOLD_COLUMN_NAME = 'kfold'
 MODEL_NAME = '../models/KC_LR_MODEL_'
 MODEL_LOSS = 'mse'
 MODEL_OPTIMIZER = 'adam'
 NUM_EPOCHS = 200
+LR = 0.5
