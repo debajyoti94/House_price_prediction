@@ -7,7 +7,8 @@ import feature_engg
 import argparse
 
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
+from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
 from keras.models import load_model
 
@@ -36,33 +37,40 @@ def run(dataset, fold):
     model = Sequential()
     model.add(Dense(config.NUM_FEATURES, activation='relu'))
     model.add(Dense(config.NUM_FEATURES, activation='relu'))
-    model.add(Dense(config.NUM_FEATURES, activation='relu'))
-    model.add(Dense(config.NUM_FEATURES, activation='relu'))
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(100, activation='relu'))
     model.add(Dense(1))
 
     optimizer = Adam(lr=config.LR)
     model.compile(optimizer=optimizer, loss='mse')
 
+    # defining early stopping in case model overfits
+    # mode= min which means you want to minimize the val loss
+    # patience=25 wait for 25 epochs after val loss starts increasing
+    early_stop = EarlyStopping(monitor='val_loss', mode='min',
+                               patience=25)
+
     model.fit(x=X_train, y=y_train, batch_size=config.BATCH_SIZE,
-              epochs=config.NUM_EPOCHS, validation_data=(X_valid,y_valid)
+              epochs=config.NUM_EPOCHS, validation_data=(X_valid,y_valid),
+              callbacks=[early_stop]
               )
 
-    train_loss = model.history.history['loss']
-    valid_loss = model.history.history['val_loss']
+    losses = model.history.history
 
-    return model, train_loss, valid_loss
-
-    return model
+    return model, losses
 
 # inference stage here
 def inference_stage(dataset, model):
     '''
-
-    :param dataset:
-    :param model:
+    Run model on test set and get model performance
+    :param dataset: test set
+    :param model: model that is trained
     :return:
     '''
-    return
+    X_test = dataset.drop(config.OUTPUT_FEATURE, axis=1, inplace=False).values
+    y_test = dataset[config.OUTPUT_FEATURE].values
+
+    print(model.evaluate(X_test, y_test))
 
 
 if __name__ == "__main__":
@@ -109,20 +117,22 @@ if __name__ == "__main__":
         train_set = dl_obj.load_file(config.CLEAN_TRAIN_DATASET)
 
         for fold_value in range(config.NUM_FOLDS):
-            model, train_loss, validation_loss = run(train_set[0],
-                                                     fold_value)
+            model, losses = run(train_set[0],fold_value)
 
             dl_obj.dump_file(str(config.MODEL_NAME)+str(fold_value)+".pickle",
                              model)
-            dl_obj.dump_file( "../results/train_loss_"+str(fold_value)+".pickle",
-                             train_loss)
-            dl_obj.dump_file("../results/validation_loss_" + str(fold_value) + ".pickle",
-                             validation_loss)
+            dl_obj.dump_file( "../results/loss_"+str(fold_value)+".pickle",
+                             losses)
+
 
 
     elif args.test == 'inference':
 
         # load model
+        model = dl_obj.load_file(config.BEST_MODEL)
 
         # load test set
-        pass
+        test_set = dl_obj.load_file(config.CLEAN_TEST_DATASET)
+
+        # calling the inference stage function
+        inference_stage(dataset=test_set[0], model=model[0])
