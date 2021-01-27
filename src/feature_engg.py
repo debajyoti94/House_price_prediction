@@ -68,9 +68,16 @@ class FeatureEngg(MustHaveForFeatureEngg):
             data[config.KFOLD_COLUMN_NAME] = -1
             kfold_obj = create_folds.CreateFolds()
             data = kfold_obj.get_kfolds(data)
+
+            # pickle the scaler
+            dl_obj = DumpLoadFile()
+            dl_obj.dump_file('../models/scaler.pickle', scaler)
+
             print(data.columns)
         elif dataset_type == 'TEST':
-            scaler.fit_transform(data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False))
+            dl_obj = DumpLoadFile()
+            data_scaler = dl_obj.load_file('../models/scaler.pickle')
+            data_scaler[0].transform(data.drop(config.OUTPUT_FEATURE, axis=1, inplace=False))
 
         return data
 
